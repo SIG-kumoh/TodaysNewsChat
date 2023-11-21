@@ -1,1 +1,1 @@
-from .room import router as room_router
+from .room import get_router as get_room_router

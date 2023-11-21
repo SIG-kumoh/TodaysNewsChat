@@ -8,6 +8,9 @@ from uvicorn import Config, Server
 
 
 class APP(ABC):
+    def __init__(self):
+        self._load_properties()
+
     def _load_properties(self):
         properties_file = 'resources/properties.yml'
         with open(properties_file, 'r', encoding='UTF-8') as yml:
@@ -21,9 +24,9 @@ class APP(ABC):
             self.jwt_secret_key : str = props['JWT']['SECRET_KEY']
 
     def _server_load(self, app) -> Server:
-        self.loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_event_loop()
         config = Config(app=app,
                         host=self.host,
                         port=self.port,
-                        loop=self.loop)
+                        loop=self._loop)
         return Server(config)

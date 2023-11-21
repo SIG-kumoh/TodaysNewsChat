@@ -1,8 +1,14 @@
 SERVER:
-    HOST:'192.168.0.8'
-    PORT:8080
-    CORS_ORIGINS:['*']
+    HOST: 192.168.0.8
+    PORT: 8081
+    CORS_ORIGINS: ['*']
 
 JWT:
-    HEADER:Authorization
-    SECRET_KEY:a2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbQ
+    HEADER: Authorization
+    SECRET_KEY: a2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbQ==
+
+MONGO:
+    HOST: 192.168.0.8
+    PORT: 6973
+    PASSWORD: admin
+
