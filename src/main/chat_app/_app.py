@@ -19,6 +19,7 @@ class APP(ABC):
             self.host           : str = props['SERVER']['HOST']
             self.port           : int = props['SERVER']['PORT']
             self.cors_origins   : List[str] = props['SERVER']['CORS_ORIGINS']
+            self.prefix         : str = props['SERVER']['PREFIX']
 
             self.jwt_header     : str = props['JWT']['HEADER']
             self.jwt_secret_key : str = props['JWT']['SECRET_KEY']

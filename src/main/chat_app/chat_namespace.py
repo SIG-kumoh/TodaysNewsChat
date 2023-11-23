@@ -1,36 +1,15 @@
 import base64
-import hashlib
-import hmac
+from urllib.request import Request
 
 import jwt
-
-from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 
 from socketio import AsyncNamespace
-from starlette import status
+
+from chat_app.auth import TokenProvider, TokenState, JWTFilter
+from chat_app.redis.redis_service import RedisService
 
 SECRET_KEY = 'a2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbQ=='
-
-
-# 인증 함수: JWT를 검증하고 클라이언트를 식별합니다.
-def authenticate(token) -> str:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"Authenticate": "Bearer"},
-    )
-
-    try:
-        key = base64.b64decode(SECRET_KEY)
-
-        payload = jwt.decode(token, key, algorithms=['HS512'])
-        username = payload.get("sub")
-        if username is None:
-            return None
-    except jwt.PyJWTError:
-        return None
-
-    return username
 
 
 class ChatNamespace(AsyncNamespace):
@@ -39,21 +18,26 @@ class ChatNamespace(AsyncNamespace):
         self.name = namespace
         self.authenticated_sids = set()
         self.user_info = dict()
-        # redis 채팅 방 생성
+        self._rs = RedisService()
+        self._tp = TokenProvider()
+        self._filter = JWTFilter()
 
     async def on_connect(self, sid, environ):
-        authorization = environ.get("HTTP_AUTHORIZATION")
-
-        username = None
-        if authorization:
-            token = authorization[7:]
-            username = authenticate(token)
-
-        if username:
+        request = Request(
+            'http://temp',
+            headers={
+                'Cookie': environ.get('HTTP_COOKIE'),
+                'Authorization': environ.get('HTTP_AUTHORIZATION')
+            }
+        )
+        try:
+            http_credentials: HTTPAuthorizationCredentials = await self._filter(request)
+            token = http_credentials.credentials
+            user = self._tp.get_user(token)
             self.authenticated_sids.add(sid)
-            self.user_info[sid] = username
-            await self.emit("message", {"message": f"User {username} connected"})
-        else:
+            self.user_info[sid] = user.username
+            await self.emit("message", {"message": f"User {user.username} connected"})
+        except:
             print(f"Invalid token. Allowing connection: {sid}")
 
     async def on_disconnect(self, sid):
@@ -63,10 +47,37 @@ class ChatNamespace(AsyncNamespace):
             del self.user_info[sid]
 
     async def on_message(self, sid, data):
-        # redis 채팅 등록
         if sid in self.authenticated_sids:
-            username = self.user_info[sid]
-            await self.emit("message", {"message": f"Message from {username}({sid}): {data}"})
-            print(f"Message from {username}({sid}): {data}")
-        else:
-            print(f"Ignoring message from unauthenticated client {sid}")
+            room = data.get('room')
+            message = data.get('message')
+
+            if room in self.server.manager.rooms.keys():
+                username = self.user_info[sid]
+                self._rs.add_message(
+                    chatroom_id=self.name,
+                    username=username,
+                    message=message
+                )
+                message = {
+                    'username': username,
+                    'message': message
+                }
+                await self.emit(event="message", data=message, room=room)
+
+    async def on_join_room(self, sid, data):
+        room = data.get('room')
+        self.enter_room(sid, room)
+
+    async def on_leave_room(self, sid, data):
+        room = data.get('room')
+        self.leave_room(sid, room)
+
+    def create_room(self, room_name):
+        self._rs.create_chatroom(room_name)
+
+    def delete_room(self, room_name):
+        # 몽고 저장도 여기서
+        self.close_room(room_name)
+        messages = self._rs.get_messages(room_name)
+        self._rs.delete_chatroom(room_name)
+        print(messages)
