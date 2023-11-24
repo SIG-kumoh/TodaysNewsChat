@@ -15,8 +15,10 @@ class JWTFilter(HTTPBearer):
             auto_error: bool = True,
     ):
         super().__init__(auto_error=auto_error)
+
         self._tp = TokenProvider()
         self._rs = RedisService()
+        self._allow_role = allow_role
 
         if isinstance(allow_role, str):
             self._allow_role = [allow_role]
