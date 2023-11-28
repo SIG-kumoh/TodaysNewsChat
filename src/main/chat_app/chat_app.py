@@ -16,7 +16,10 @@ class ChatApp(APP):
                                          cors_allowed_origins='*',)
         self._loop = asyncio.get_event_loop()
 
-        self._chat_namespace = ChatNamespace(self.prefix + '/conn')
+        self._chat_namespace = ChatNamespace(
+            namespace=self.prefix + '/conn',
+            db_directory=self.props['DB']['DIRECTORY']
+        )
         self._sio.register_namespace(self._chat_namespace)
 
         self._configure_event()
@@ -42,3 +45,4 @@ class ChatApp(APP):
             self._loop.run_until_complete(server.serve())
         except Exception as e:
             print(f"An error occurred: {e}")
+

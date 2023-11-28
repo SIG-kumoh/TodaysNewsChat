@@ -14,6 +14,7 @@ class RedisService:
         cls = type(self)
         if not hasattr(cls, '_init'):
             self._rd = redis.StrictRedis(host='192.168.0.2', port=6379, password='admin')
+            self._pubsub = self._rd.pubsub()
             cls._init = True
 
     def delete_refresh_token_by_redis(self, username: str) -> None:

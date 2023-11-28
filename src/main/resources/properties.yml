@@ -8,8 +8,5 @@ JWT:
     HEADER: Authorization
     SECRET_KEY: a2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbXRva2FyaW10b2thcmltdG9rYXJpbQ==
 
-MONGO:
-    HOST: 192.168.0.2
-    PORT: 6973
-    PASSWORD: admin
-
+DB:
+    DIRECTORY: chat_log
